@@ -1,0 +1,12 @@
+[package]
+name = "lenia_ca"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+ndarray = { version = "0.15.6", features = ["rayon"] }
+rustfft = "6.1.0"
+num-complex = "0.4.2"
+png = "0.17.7"
+rayon = "1.7.0"
