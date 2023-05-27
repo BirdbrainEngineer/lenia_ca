@@ -1,7 +1,7 @@
+//! A collection of often used growth functions.
+
 #![allow(dead_code)]
 #![allow(unused_variables)]
-
-/// A collection of common growth functions.
 
 /// Standard unimodal "gaussian bump" lenia growth function.
 /// 
@@ -21,9 +21,9 @@ pub fn standard_lenia(num: f64, params: &[f64]) -> f64 {
 /// 
 /// ### Parameters
 /// 
-/// * `params[even number]` - **mu**: The position of the means / the centers of the gaussian bumps.
+/// * `params[even index]` - **mu**: The position of the means / the centers of the gaussian bumps.
 /// 
-/// * `params[odd number]` - **sigma**: Standard deviations of the gaussian bumps. Each sigma corresponds
+/// * `params[odd index]` - **sigma**: Standard deviations of the gaussian bumps. Each sigma corresponds
 /// to the mu defined by the previous `params` index.
 pub fn multimodal_normal(num: f64, params: &[f64]) -> f64 {
     let mut sum = 0.0;

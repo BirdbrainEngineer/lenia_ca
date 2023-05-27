@@ -55,11 +55,12 @@ impl GetBytes for u16 {
 /// * `mu` - The mean (point of the highest value/peak) of the normal distribution.
 /// 
 /// * `stddev` - Standard deviation of the normal distribution. 
-pub fn sample_normal(x: f64, mu: f64, stddev: f64) -> f64 {
+fn sample_normal(x: f64, mu: f64, stddev: f64) -> f64 {
     (-(((x - mu) * (x - mu))/(2.0 * (stddev * stddev)))).exp()
 }
 
-pub fn sample_exponential(x: f64, exponent: f64, peak: f64) -> f64 {
+
+fn sample_exponential(x: f64, exponent: f64, peak: f64) -> f64 {
     peak * (-(x * exponent)).exp()
 }
 
@@ -174,10 +175,14 @@ pub fn load_from_png(file_path: &str) -> ndarray::Array2<f64> {
 /// * `frame` - Reference to the frame to be stored.
 /// 
 /// * `prefix` - Output file name. Numbers will be added after this string based on the 2d slice
-/// of the frame (if exporting a 3d or higher dimensionality frame). This prefix should also 
-/// contain the frame number, if saving multiple successive frames. 
+/// of the frame (if exporting a 3d or higher dimensionality frame). **This prefix should also 
+/// contain the frame number, if saving multiple successive frames.**
 /// 
-/// * `folder_path` - Folder path to where to save the frame at. 
+/// * `folder_path` - Folder path to where to save the frame at.
+/// 
+/// ### Panics
+/// 
+/// Under various circumstances, most commonly if the folder given by `folder_path` does not exist.
 pub fn export_frame_as_png(bit_depth: png::BitDepth, frame: &ndarray::ArrayD<f64>, prefix: &str, folder_path: &str) -> JoinHandle<()>{
     if frame.shape().is_empty() { panic!("lenia_ca::export_frame_as_png() - Can not export an empty frame!") }
 
@@ -252,7 +257,11 @@ fn nested_png_export(bit_depth: png::BitDepth, path: String, data: &ndarray::Arr
         encoder.set_depth(bit_depth);
         encoder.set_color(png::ColorType::Grayscale);
         let mut writer = encoder.write_header().unwrap();
-        writer.write_image_data(&image_data);
+        let write_result = writer.write_image_data(&image_data);
+        match write_result {
+            Ok(_) => {}
+            Err(_) => { panic!("lenia_ca::nested_png_export() - Failed to write png!"); }
+        }
     }
     else {
         for i in 0..data.shape()[current_axis] {
@@ -275,7 +284,7 @@ pub struct Simulator<L: Lenia> {
 }
 
 impl<L: Lenia> Simulator<L> {
-    /// Initialize a simulator. 
+    /// Initialize a Lenia simulator. 
     /// 
     /// Barring wanting to change the type of the `Lenia` instance used by the `Simulator`, 
     /// this should ever need to be called only once during the lifetime of your 
@@ -287,6 +296,7 @@ impl<L: Lenia> Simulator<L> {
     /// channels for the `Lenia` instance. 
     /// 
     /// ### Panics
+    /// 
     /// If any axis length in `channel_shape`is `0`.
     pub fn new(channel_shape: &[usize]) -> Self {
         for (i, dim) in channel_shape.iter().enumerate() {
@@ -309,9 +319,18 @@ impl<L: Lenia> Simulator<L> {
     /// ### Parameters
     /// 
     /// * `channel_shape` - The shape (number of dimensions and their lengths) of the
-    /// channels for the `Lenia` instance. 
-    pub fn remake(&mut self, channel_shape: Vec<usize>) {
-        self.sim = L::new(&channel_shape);
+    /// channels for the `Lenia` instance.
+    /// 
+    /// ### Panics
+    /// 
+    /// If any axis length in `channel_shape`is `0`.
+    pub fn remake(&mut self, channel_shape: &[usize]) {
+        for (i, dim) in channel_shape.iter().enumerate() {
+            if *dim == 0 {
+                panic!("Simulator::new() - Axis {} of the provided shape has a length of 0! Each axis must have a length of at least 1.", i);
+            }
+        }
+        self.sim = L::new(channel_shape);
     }
 
     /// Set the number of channels in the `Lenia` instance. 
@@ -331,7 +350,7 @@ impl<L: Lenia> Simulator<L> {
     /// 
     /// ### Panics
     /// 
-    /// If `channels` is `0.0`.
+    /// If `channels` is `0`.
     pub fn set_channels(&mut self, channels: usize) {
         if channels == 0 {
             panic!("Simulator::set_channels: Attempting to set the number of channels to 0. This is not allowed.");
@@ -349,7 +368,7 @@ impl<L: Lenia> Simulator<L> {
     /// 
     /// If the new number of convolution channels is greater than currently then any new 
     /// convolution channels will need to have their kernels and growth functions set. In addition,
-    /// weights for the new convolution channels will default to `0.0`. 
+    /// channel weights for the new convolution channels will default to `0.0`. 
     /// 
     /// ### Parameters
     /// 
@@ -357,7 +376,7 @@ impl<L: Lenia> Simulator<L> {
     /// 
     /// ### Panics
     /// 
-    /// If `convolution_channels` is `0.0`.
+    /// If `convolution_channels` is `0`.
     pub fn set_convolution_channels(&mut self, convolution_channels: usize) {
         if convolution_channels == 0 {
             panic!("Simulator::set_convolution_channels: Attempting to set the number of convolution channels to 0. This is not allowed.");
@@ -394,7 +413,7 @@ impl<L: Lenia> Simulator<L> {
     /// 
     /// ### Parameters
     /// 
-    /// * `kernel` - n-dimensional `f64` array (`ndarray::ArrayD`), where the number of 
+    /// * `kernel` - n-dimensional array (`ndarray::ArrayD<f64>`), where the number of 
     /// dimensions / axes must match the number of dimensions / axes of the channels of the
     /// `Lenia` instance. 
     /// 
@@ -436,10 +455,10 @@ impl<L: Lenia> Simulator<L> {
         self.sim.set_growth(f, growth_parameters, convolution_channel);
     }
 
-    /// Set the convolution channel input weights for a specific channel.
+    /// Set the convolution channel weights for a specific channel.
     /// 
     /// * If the length of weights is greater than the number of convolution channels, 
-    /// then the spare weights will be disregarded.
+    /// then the spare weights will be ignored.
     /// 
     /// * If the length of weights is less than the number of convolution channels, 
     /// then the missing weights will default to `0.0`.
@@ -469,7 +488,7 @@ impl<L: Lenia> Simulator<L> {
         self.sim.iterate();
     }
 
-    /// Fills a channel with user data. The shapes of the `data` and the channels in the
+    /// Fills a channel with user data. The shapes of the `data` and the channel(s) in the
     /// `Lenia` instance must be the same. 
     /// 
     /// ### Parameters
@@ -521,8 +540,8 @@ impl<L: Lenia> Simulator<L> {
     /// Retrieve a reference to the specified channel's "deltas". Deltas are the amounts added onto the 
     /// previous iteration's result to get the current iteration's result. 
     /// 
-    /// Note that `dt` parameter has not been applied for this field, and the values are in the range
-    /// `[-1.0..1.0]`.
+    /// Note that `dt` parameter has not been applied for this field, and no clamp / clip operation has
+    /// been performed, thus the numbers will be in range `[-1.0..1.0]`.
     /// 
     /// ### Parameters
     /// 
@@ -539,7 +558,7 @@ impl<L: Lenia> Simulator<L> {
     }
 
     /// Retrieve a reference to the specified convolution channel's convolution result, 
-    /// also called the "Activation". 
+    /// also called the "potential distribution". 
     /// 
     /// ### Parameters
     /// 
@@ -557,7 +576,7 @@ impl<L: Lenia> Simulator<L> {
     }
 
     /// Retrieve a reference to the specified convolution channel's convolution results with
-    /// the growth function applied.
+    /// the growth function applied, also called the "activation".
     /// 
     /// ### Parameters
     /// 
@@ -567,7 +586,7 @@ impl<L: Lenia> Simulator<L> {
     /// ### Panics
     /// 
     /// If the specified `channel` does not exist.
-    pub fn get_grown_as_ref(&self, convolution_channel: usize) -> &ndarray::ArrayD<f64> {
+    pub fn get_activated_as_ref(&self, convolution_channel: usize) -> &ndarray::ArrayD<f64> {
         if convolution_channel >= self.sim.channels() {
             panic!("Simulator::get_grown_as_ref() - Specified convolution channel (index {}) does not exist. Current number of convolution channels: {}.", convolution_channel, self.sim.conv_channels());
         }
@@ -612,10 +631,6 @@ pub trait Lenia {
     /// **If the new number of channels is fewer than currently then the user is responsible for re-making
     /// the convolution channels or deleting invalidated convolution channels and
     /// make sure that no convolution channel tries to convolute a non-existent channel!**
-    /// 
-    /// For the above reason, the `Simulator` struct does not implement a function to
-    /// reduce the number of channels, but rather asks to remake the whole `Lenia` instance
-    /// when reducing the number of channels is wanted.
     fn set_channels(&mut self, num_channels: usize);
     /// Sets the number of convolution channels in the `Lenia` instance. 
     /// 
@@ -673,9 +688,7 @@ pub trait Lenia {
 
 #[derive(Clone, Debug)]
 /// The `Channel` struct is a wrapper for holding the data of a single channel in a 
-/// `Lenia` simulation. The struct also implements functionality for applying the
-/// weights of the convolution channels and summing up the final result in any
-/// Lenia system more complex than the Standard Lenia. 
+/// `Lenia` simulation. 
 pub struct Channel {
     pub field: ndarray::ArrayD<f64>,
     pub weights: Vec<f64>,
@@ -712,15 +725,15 @@ impl fmt::Debug for ConvolutionChannel {
 /// the Lenia simulation. It also implements the necessary conversions to normalize a
 /// kernel and prepare it for convolution using fast-fourier-transform. 
 /// 
-/// ### Fields
+/// ### Parameters
 /// 
-/// * `base` - The original `f64` ndarray fom which the `Kernel` got made from.
+/// * `base` - The original `ndarray::ArrayD<f64>` fom which the `Kernel` got made from.
 /// 
 /// * `normalized` - The scaled down version of the base Kernel such that the sum of 
 /// all the values of the kernel is `1.0`.
 /// 
 /// * `shifted` - Normalized kernel with its center shifted to the "top-right" corner and
-/// the size made to match the size of the `Lenia` instance channels. 
+/// the re-sized to match the size of the `Lenia` instance channels. 
 /// This is necessary for fourier-transforming the kernel.
 /// 
 /// * `transformed` - Fourier-transformed kernel.
@@ -732,7 +745,7 @@ pub struct Kernel {
 }
 
 impl Kernel {
-    /// Creates a new Kernel struct from an n-dimensional array (`ndarray::ArrayD`) of `f64` values.
+    /// Creates a new Kernel struct from an n-dimensional array (`ndarray::ArrayD<f64>`).
     /// 
     /// Creates the normalized version of the kernel.
     /// 
@@ -741,14 +754,9 @@ impl Kernel {
     /// 
     /// ### Parameters
     /// 
-    /// * `kernel` - Array (`ndarray::ArrayD`) of `f64` values that define the weights of the kernel.
+    /// * `kernel` - Base data for the kernel.
     /// 
     /// * `channel_shape` - Shape of the channel the kernel is supposed to act on.
-    /// 
-    /// ### Returns
-    /// 
-    /// A `Kernel` instance containing the base kernel, normalized version of the base kernel and 
-    /// a fourier-transformed kernel representation. 
     /// 
     /// ### Panics
     /// 

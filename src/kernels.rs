@@ -1,7 +1,7 @@
+//! Collection of generators for often used kernel shapes. 
+
 #![allow(dead_code)]
 #![allow(unused_variables)]
-
-/// Collection of generators for some of the common Lenia kernels. 
 
 use super::*;
 use ndarray::IxDyn;
@@ -252,6 +252,7 @@ pub fn polynomial_nd(radius: usize, dimensions: usize, params: &[f64]) -> ndarra
     out
 }
 
+/// Refer to Lenia paper or someone more versed in mathematics, I have no clue... I just translated the math into code...
 fn c(r: f64, alpha: f64) -> f64 {
     let num = 4.0 * r * (1.0 - r);
     let mut out = 1.0;
@@ -307,6 +308,7 @@ pub fn pass(shape: &[usize]) -> ndarray::ArrayD<f64> {
     ndarray::ArrayD::<f64>::from_shape_fn(unit_shape, |a| { 1.0 })
 }
 
+/// Euclidean distance between points `a` and `b`. 
 pub fn euclidean_dist(a: &[f64], b: &[f64]) -> f64 {
     let mut out: f64 = 0.0;
     for i in 0..a.len() {

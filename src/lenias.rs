@@ -1,3 +1,6 @@
+//! Collection of different types of Lenia systems. Currently only has Basic and Expanded types of Lenia. 
+//! Missing Asymptotic and particle types of Lenia. 
+
 use ndarray::{self, Zip, IntoNdProducer};
 use num_complex::Complex;
 use std::sync::{Arc, Mutex, RwLock};
@@ -5,7 +8,7 @@ use std::thread;
 use super::*;
 use super::fft::{PlannedFFTND, ParPlannedFFTND};
 
-/// `SimpleLenia` struct implements the non-extended Lenia system with a 2d field and 
+/// `StandardLenia` struct implements the non-expanded Lenia system with a 2d field and 
 /// pre-set parameters to facilitate the creation of the
 /// ***Orbium unicaudatus*** glider - hallmark of the Lenia system.
 /// 
@@ -29,14 +32,14 @@ impl StandardLenia {
 }
 
 impl Lenia for StandardLenia {
-    /// Create and initialize a new instance of "Standard Lenia" in 2D. This version of Lenia
-    /// can have only a single channel and a single convolution channel. It also does not
-    /// support any weights, as it can be encoded within the `dt` parameter. 
-    /// 
-    /// The size of either dimension may not be smaller than 28 pixels. 
+    /// Create and initialize a new instance of "Standard Lenia". This version of Lenia
+    /// can have only a single channel and a single convolution channel and works
+    /// only in 2D. 
+    /// It also does not support any weights, as it can be "encoded" within the `dt` parameter. 
     /// 
     /// By default the kernel, growth function and dt parameter are set such that when 
-    /// simulating, the simulation is capable of producing the ***Orbium unicaudatus*** glider.
+    /// simulating, the simulation is capable of producing the ***Orbium unicaudatus*** glider. 
+    /// This does assume that the shape is at last `[28, 28]`, but ideally larger... more like `[100, 100]`.
     /// 
     /// ### Parameters
     /// 
@@ -198,7 +201,8 @@ impl Lenia for StandardLenia {
 
 
 /// `ExpandedLenia` struct implements the expanded Lenia system, with support for multiple n-dimensional
-/// channels, multiple kernels & associated growth functions (convolution channels) and weights.  
+/// channels, multiple kernels & associated growth functions (convolution channels) and weights. You will
+/// most likely be using this type of Lenia mostly, as it is vastly more "powerful" in its capabilities.
 pub struct ExpandedLenia {
     dt: f64,
     channels: Vec<Channel>,
@@ -370,6 +374,7 @@ impl Lenia for ExpandedLenia {
                         |a, b| {
                             if i == 0 { *a = 0.0; }
                             *a += *b * channel.weights[i];
+                            // I should have normalized weights while they are being set... oh well...
                             if i == channel.weights.len() { *a *= channel.weight_sum_reciprocal; }
                         }
                     );
@@ -454,8 +459,6 @@ impl Lenia for ExpandedLenia {
                 );
                 self.forward_fft_instances.push(fft::ParPlannedFFTND::new(&self.shape, false));
                 self.inverse_fft_instances.push(fft::ParPlannedFFTND::new(&self.shape, true));
-                //self.forward_fft_instances.push(fft::PlannedParFFTND::new(&self.shape, false, 0));
-                //self.inverse_fft_instances.push(fft::PlannedParFFTND::new(&self.shape, true, 0));
                 self.convolutions.push(ndarray::ArrayD::from_elem(self.shape.clone(), Complex::new(0.0, 0.0)));
             }
             for channel in &mut self.channels {
