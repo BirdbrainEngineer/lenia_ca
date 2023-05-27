@@ -1,4 +1,10 @@
-//! `Lenia_ca` is a crate that provides core functionality for simulating the Lenia system of cellular automata. 
+//! `Lenia_ca` is a crate that provides core functionality for simulating the Lenia system of cellular automata. The crate was made
+//! as a programming excersize in making a large-ish Rust project. Since this was the first proper Rust project for the author, then
+//! the crate has some weird quirks and inefficient... perhaps even illogical ways of structuring it. 
+//! 
+//! For now, the general way to use the crate is to import it like you would any other Rust crate, and then use the `Simulator` struct
+//! essentially exclusively. You may also want to look into the `kernels` module and `growth_functions` module, as they contain a number
+//! of useful generators and functions for Lenia systems. 
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
@@ -6,7 +12,7 @@
 
 use std::fmt;
 use std::{thread::JoinHandle};
-use ndarray::{self, Axis, Slice, Order, Ix2, Zip};
+use ndarray::{self, Axis, Slice, Order, Ix2};
 use num_complex::Complex;
 use png;
 mod fft;
@@ -64,6 +70,17 @@ fn sample_exponential(x: f64, exponent: f64, peak: f64) -> f64 {
     peak * (-(x * exponent)).exp()
 }
 
+/// Euclidean distance between points `a` and `b`. 
+fn euclidean_dist(a: &[f64], b: &[f64]) -> f64 {
+    let mut out: f64 = 0.0;
+    for i in 0..a.len() {
+        out += (a[i] - b[i]) * (a[i] - b[i]);
+    }
+    out.sqrt()
+}
+
+/// Extract data from n-dimensional array into a 2-dimensional array.
+/// 
 /// Extract a 2d array (`ndarray::Array2`) of `f64` values of a 2d slice of a channel's data. 
 /// Use this to simply get a 2d frame for rendering. 
 /// 
@@ -109,7 +126,7 @@ pub fn get_frame(input: &ndarray::ArrayD<f64>, output: &mut ndarray::Array2<f64>
     ndarray::Zip::from(output).and(&data).par_for_each(|a, b| { *a = *b; });
 }
 
-/// Loads a png into a an `ndarray`. 
+/// Loads a png into an `ndarray`. 
 /// 
 /// ### Parameters
 /// 
@@ -277,6 +294,8 @@ fn nested_png_export(bit_depth: png::BitDepth, path: String, data: &ndarray::Arr
     }
 }
 
+/// A Lenia simulation.
+/// 
 /// Container type for a `Lenia` implementation. It is not recommended to control the Lenia instance directly on your own. 
 /// The Simulator has all the needed methods to control a Lenia instance in normal operation. 
 pub struct Simulator<L: Lenia> {
@@ -623,6 +642,9 @@ impl<L: Lenia> Simulator<L> {
     }
 }
 
+/// Lenia functionality trait.
+/// 
+/// Lenia trait organizes together all the functionality to interact with a Lenia simulation. 
 pub trait Lenia {
     /// Creates a new `Lenia` instance. 
     fn new(shape: &[usize]) -> Self;
@@ -687,6 +709,8 @@ pub trait Lenia {
 }
 
 #[derive(Clone, Debug)]
+/// A single channel in a Lenia simulation.
+/// 
 /// The `Channel` struct is a wrapper for holding the data of a single channel in a 
 /// `Lenia` simulation. 
 pub struct Channel {
@@ -696,6 +720,8 @@ pub struct Channel {
 }
 
 #[derive(Clone)]
+/// A single kernel-growth function pair in a Lenia simulation.
+/// 
 /// The `ConvolutionChannel` struct holds relevant data for the convolution step of the
 /// Lenia simulation. This includes the kernel, the intermittent convolution step, and the 
 /// growth function.
@@ -721,6 +747,8 @@ impl fmt::Debug for ConvolutionChannel {
 
 
 #[derive(Clone, Debug)]
+/// N-dimensional kernel.
+/// 
 /// The `Kernel` struct holds the data of a specific kernel to be used for convolution in
 /// the Lenia simulation. It also implements the necessary conversions to normalize a
 /// kernel and prepare it for convolution using fast-fourier-transform. 

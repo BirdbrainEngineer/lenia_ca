@@ -6,10 +6,9 @@
 use super::*;
 use ndarray::IxDyn;
 
-/// Creates the kernel base for a gaussian donut in 2d. 
+/// Generates a kernel base of a gaussian donut in 2d. 
 /// The mean (position of the highest value) is placed at `0.5`
 /// in the range `[0.0..1.0]`, where `0.0` is the center of the kernel and `1.0` the outer edge.
-/// 
 /// 
 /// ### Parameters
 /// 
@@ -40,7 +39,8 @@ pub fn gaussian_donut_2d(radius: usize, stddev: f64) -> ndarray::ArrayD<f64> {
     out
 }
 
-/// Create the base for a kernel made from multiple concentric gaussian "donuts" in 2d.
+/// Generates a kernel base of multiple concentric gaussian "donuts" in 2d.
+/// 
 /// Each donut/ring is a single index in the list of parameters. 
 /// 
 /// ### Parameters
@@ -86,7 +86,8 @@ pub fn multi_gaussian_donut_2d(radius: usize, means: &[f64], peaks: &[f64], stdd
     out
 }
 
-/// Creates the kernel base for a gaussian donut in n-dimensions. 
+/// Generates a kernel base of a gaussian donut in n-dimensions.
+///  
 /// The mean (position of the highest value) is placed at `0.5`
 /// in the range `[0.0..1.0]`, where `0.0` is the center of the kernel and `1.0` the outer edge.
 /// 
@@ -124,7 +125,8 @@ pub fn gaussian_donut_nd(radius: usize, dimensions: usize, stddev: f64) -> ndarr
     out
 }
 
-/// Create the base for a kernel made from multiple radial gaussian "hyper-donuts" in n dimensions.
+/// Generates a kernel base of multiple radial gaussian "hyper-donuts" in n-dimensions.
+/// 
 /// Each donut/ring is a single index in the list of parameters. 
 /// 
 /// ### Parameters
@@ -172,7 +174,7 @@ pub fn multi_gaussian_donut_nd(radius: usize, dimensions: usize, means: &[f64], 
     out
 }
 
-/// Creates a radially symmetric kernel. 
+/// Generates a kernel base of a radially symmetric sampling of precalculated values.
 /// 
 /// ### Parameters
 /// 
@@ -211,8 +213,10 @@ pub fn precalculated_linear(radius: usize, dimensions: usize, params: &[f64]) ->
     out
 }
 
-/// Creates the kernel base for "polynomial donuts". The peaks of the individual rings are equally spaced
-/// around the center of the kernel. 
+/// Generates a kernel base of "polynomial donuts". 
+/// 
+/// The peaks of the individual rings are equally spaced around the center of the kernel. 
+/// Refer to Lenia paper for more context.
 /// 
 /// ### Parameters
 /// 
@@ -271,7 +275,9 @@ pub fn conway_game_of_life() -> ndarray::ArrayD<f64> {
     out
 }
 
-/// Kernel for "SmoothLife" cellular automaton in any dimensionality. Not completely faithful to SmoothLife.
+/// Generates a kernel base of a "SmoothLife" outer kernel.
+/// 
+/// Not completely faithful to SmoothLife.
 /// 
 /// ### Parameters
 /// 
@@ -299,20 +305,9 @@ pub fn smoothlife(radius: usize, dimensions: usize, width_ratio: f64) -> ndarray
     out
 }
 
-/// Gives a kernel the size of 1 unit containing `1.0`, but with as many dimensions as `shape`.
-pub fn pass(shape: &[usize]) -> ndarray::ArrayD<f64> {
-    let mut unit_shape: Vec<usize> = Vec::new();
-    for _ in shape {
-        unit_shape.push(1);
-    }
+/// Generates a kernel base of a single pixel with n-dimensions.
+pub fn pass(dimensions: usize) -> ndarray::ArrayD<f64> {
+    let mut unit_shape: Vec<usize> = vec![1; dimensions];
     ndarray::ArrayD::<f64>::from_shape_fn(unit_shape, |a| { 1.0 })
 }
 
-/// Euclidean distance between points `a` and `b`. 
-pub fn euclidean_dist(a: &[f64], b: &[f64]) -> f64 {
-    let mut out: f64 = 0.0;
-    for i in 0..a.len() {
-        out += (a[i] - b[i]) * (a[i] - b[i]);
-    }
-    out.sqrt()
-}

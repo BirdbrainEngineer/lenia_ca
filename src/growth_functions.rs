@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-/// Standard unimodal "gaussian bump" lenia growth function.
+/// Standard unimodal "gaussian bump".
 /// 
 /// ### Parameters
 /// 
@@ -17,7 +17,10 @@ pub fn standard_lenia(num: f64, params: &[f64]) -> f64 {
     (2.0 * super::sample_normal(num, params[0], params[1])) - 1.0
 }
 
-/// Multimodal "gaussian bumps" growth function. 
+/// Multimodal "gaussian bumps" growth function.
+/// 
+/// While the Lenia paper calls for a unimodal growth function, then strictly speaking, there are no rules!
+/// Do whatever you want.
 /// 
 /// ### Parameters
 /// 
@@ -33,7 +36,7 @@ pub fn multimodal_normal(num: f64, params: &[f64]) -> f64 {
     (sum * 2.0) - 1.0
 }
 
-/// Standard unimodal "polynomial bump" Lenia growth function.
+/// Standard unimodal "polynomial bump".
 /// 
 /// ### Parameters
 /// 
@@ -56,7 +59,9 @@ pub fn polynomial(num: f64, params: &[f64]) -> f64 {
     }
 }
 
-/// Samples from a precalculated distribution. The distribution is made of evenly spaced points from
+/// Samples from a precalculated distribution.
+/// 
+/// The distribution is made of evenly spaced points from
 /// `0.0` to `1.0`. In the likely event of the sample falling between 2 points in the distribution, 
 /// the result will be interpolated linearly between the two points.
 /// 
@@ -82,8 +87,9 @@ pub fn conway_game_of_life(num: f64, params: &[f64]) -> f64 {
     else {-1.0 }
 }
 
-/// Basic Smooth Life growth function. Not faithful to proper SmoothLife, and is not capable of simulating 
-/// every SmoothLife.
+/// Basic Smooth Life growth function.
+/// 
+/// Not faithful to proper SmoothLife, and is not capable of simulating every SmoothLife.
 /// 
 /// `params[0]` - Birth range start
 /// 
@@ -98,7 +104,9 @@ pub fn smooth_life(num: f64, params: &[f64]) -> f64 {
     -1.0
 }
 
-/// Smooth Life growth function with smoothed stepping. Not faithful to proper SmoothLife.
+/// Smooth Life growth function with smoothed stepping. 
+/// 
+/// Not faithful to proper SmoothLife and is not capable of simulating every SmoothLife.
 /// 
 /// Step width defines the range within which `~99%` of the change between states takes place.
 /// 
@@ -123,10 +131,13 @@ pub fn smooth_life_sigmoid_smoothed(num: f64, params: &[f64]) -> f64 {
     if birth > survive { birth } else { survive }
 }
 
+/// Sigmoid function.
 fn sigmoid(x: f64, center: f64, sigma: f64, peak: f64) -> f64 {
     peak / (1.0 + (-((x - center) * (4.0 / sigma))).exp())
 }
 
+/// Pass number on virtually unchanged.
+/// 
 /// Returns `num` multiplied by `params[0]`. Use this growth function if you would like to not use a growth function, 
 /// but merely explore the dynamics of iterative application of kernels.
 pub fn pass(num: f64, params: &[f64]) -> f64 {

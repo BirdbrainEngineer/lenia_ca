@@ -1,13 +1,13 @@
-//! Collection of different types of Lenia systems. Currently only has Basic and Expanded types of Lenia. 
-//! Missing Asymptotic and particle types of Lenia. 
+//! Collection of different types of Lenia systems.
 
-use ndarray::{self, Zip, IntoNdProducer};
 use num_complex::Complex;
 use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use super::*;
-use super::fft::{PlannedFFTND, ParPlannedFFTND};
+use super::fft::ParPlannedFFTND;
 
+/// Standard type of Lenia
+/// 
 /// `StandardLenia` struct implements the non-expanded Lenia system with a 2d field and 
 /// pre-set parameters to facilitate the creation of the
 /// ***Orbium unicaudatus*** glider - hallmark of the Lenia system.
@@ -200,6 +200,8 @@ impl Lenia for StandardLenia {
 
 
 
+/// Expanded type of Lenia
+/// 
 /// `ExpandedLenia` struct implements the expanded Lenia system, with support for multiple n-dimensional
 /// channels, multiple kernels & associated growth functions (convolution channels) and weights. You will
 /// most likely be using this type of Lenia mostly, as it is vastly more "powerful" in its capabilities.
@@ -217,7 +219,7 @@ pub struct ExpandedLenia {
 impl Lenia for ExpandedLenia {
     /// Create and initialize a new instance of "ExpandedLenia`. 
     fn new(shape: &[usize]) -> Self {
-        let kernel = Kernel::from(kernels::pass(shape), shape);
+        let kernel = Kernel::from(kernels::pass(shape.len()), shape);
         
         let conv_channel = ConvolutionChannel {
             input_channel: 0,
@@ -452,7 +454,7 @@ impl Lenia for ExpandedLenia {
                     ConvolutionChannel { 
                         input_channel: 0, 
                         field: self.conv_channels[0].field.clone(), 
-                        kernel: Kernel::from(kernels::pass(&self.shape), &self.shape), 
+                        kernel: Kernel::from(kernels::pass(self.shape.len()), &self.shape), 
                         growth: growth_functions::pass, 
                         growth_params: vec![0.0],
                     }

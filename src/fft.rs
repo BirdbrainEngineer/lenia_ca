@@ -3,8 +3,8 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use std::{fmt, sync::{Arc, Mutex}};
-use rustfft::{Fft, FftNum, FftPlanner, FftDirection};
+use std::{fmt, sync::Arc};
+use rustfft::{Fft, FftPlanner, FftDirection};
 use rustfft::num_complex::Complex;
 use rayon::prelude::*;
 
