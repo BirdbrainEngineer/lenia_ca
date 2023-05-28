@@ -1,6 +1,7 @@
 [package]
 name = "lenia_ca"
 version = "0.1.0"
+authors = ["Birdbrain"]
 edition = "2021"
 license = "MIT"
 
