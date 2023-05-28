@@ -17,6 +17,18 @@ use super::fft::ParPlannedFFTND;
 /// 
 /// Changeable parameters include the timestep a.k.a. integration step **dt**, 
 /// the **growth function**, and the **kernel** given that the kernel is 2-dimensional. 
+/// 
+/// ### Example of initializing a `StandardLenia`.
+/// ```
+/// let starting_pattern: ndarray::ArrayD<f64>; // fill with your data
+/// let channel_shape: Vec<usize> = vec![100, 100];
+/// let mut simulator = Simulator::<StandardLenia>::new(&channel_shape);
+/// simulator.fill_channel(data: &starting_pattern, 0);
+/// while true {
+///     simulator.iterate();
+///     display(get_channel_as_ref(0));
+/// }
+/// ```
 pub struct StandardLenia {
     dt: f64,
     channel: Channel,
@@ -203,6 +215,39 @@ impl Lenia for StandardLenia {
 /// `ExpandedLenia` struct implements the expanded Lenia system, with support for multiple n-dimensional
 /// channels, multiple kernels & associated growth functions (convolution channels) and weights. You will
 /// most likely be using this type of Lenia mostly, as it is vastly more "powerful" in its capabilities.
+/// 
+/// `ExpandedLenia` **requires that the user sets up all of the kernels, growth functions, weigths and
+/// integration step!**
+/// 
+/// ### Example of initializing an `ExpandedLenia`.
+/// ```
+/// // initialize
+/// let starting_pattern0: ndarray::ArrayD<f64>; // fill with your data
+/// let starting_pattern1: ndarray::ArrayD<f64>; // fill with your data
+/// let channel_shape: Vec<usize> = vec![100, 100];
+/// let mut simulator = Simulator::<ExpandedLenia>::new(&channel_shape);
+/// // set up the simulation
+/// simulator.set_channels(2);
+/// simulator.set_convolution_channels(3);
+/// simulator.set_convolution_channel_source(0, 0);
+/// simulator.set_convolution_channel_source(1, 1);
+/// simulator.set_convolution_channel_source(2, 1);
+/// simulator.set_kernel(kernels::gaussian_donut_2d(14, 0.15), 0);
+/// simulator.set_kernel(kernels::polynomial(25, 2, &vec![4.0, 1.0, 0.333]), 1);
+/// simulator.set_kernel(kernels::polynomial(21, 2, &vec![4.0, 0.0, 1.0]), 2);
+/// simulator.set_growth_function(growth_functions::standard_lenia, vec![0.15, 0.015], 0);
+/// simulator.set_growth_function(growth_functions::polynomial, vec![0.25, 0.03], 1);
+/// simulator.set_growth_function(growth_functions::polynomial, vec![0.07, 0.026], 2);
+/// simulator.set_weights(&vec![2.0/3.0, 0.0, 1.0/3.0], 0);
+/// simulator.set_weights(&vec![0.0, -1.0, 0.0], 1);
+/// simulator.set_dt(0.1);
+/// // seed and simulate
+/// simulator.fill_channel(data: &starting_pattern, 0);
+/// while true {
+///     simulator.iterate();
+///     display(get_channel_as_ref(0));
+/// }
+/// ```
 pub struct ExpandedLenia {
     dt: f64,
     channels: Vec<Channel>,

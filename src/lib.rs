@@ -10,10 +10,10 @@
 //! 
 //! A rough example of a quick-start code is below... Please note that `display()` function would have to be implemented by the user.
 //! ```
-//! let starting_condition: ndarray::ArrayD<f64>; // fill with your data
+//! let starting_pattern: ndarray::ArrayD<f64>; // fill with your data
 //! let channel_shape: Vec<usize> = vec![100, 100];
 //! let mut simulator = Simulator::<StandardLenia>::new(&channel_shape);
-//! simulator.fill_channel(data: &starting_condition, 0);
+//! simulator.fill_channel(data: &starting_pattern, 0);
 //! while true {
 //!     simulator.iterate();
 //!     display(get_channel_as_ref(0));
@@ -40,17 +40,7 @@
 //! 
 //! use `set_dt()` to change the integration-step of the simulation. 
 //! 
-//!
-#![cfg_attr(feature = "doc-images",
-cfg_attr(all(),
-doc = ::embed_doc_image::embed_image!("one", "images/glider.png"),
-doc = ::embed_doc_image::embed_image!("two", "images/glider.png")))]
-#![cfg_attr(
-not(feature = "doc-images"),
-doc = "**Doc images not enabled**. Compile with feature `doc-images` and Rust version >= 1.54 \
-           to enable."
-)]
-//!
+//! Image of the algorithm available on Github
 //! 
 //! The working principle for `ExpandedLenia` is the following:
 //! * For each `convolution_channel`, perform a convolution operation (implemented as a FFT-based convolution) between a source `channel` 
@@ -62,6 +52,9 @@ doc = "**Doc images not enabled**. Compile with feature `doc-images` and Rust ve
 //! * For each `channel`, multiply the weighted-sum by the integration step `dt` and add it to the original values in the `channel`.
 //! * For each `channel`, clamp the resulting values to be in range `0..1`. This result is the next time-step of the corresponding `channel`, and would
 //! be used as the next iteration's `channel` values.
+//! 
+//! Image of the algorithm available on Github
+//! 
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
