@@ -3,6 +3,7 @@ name = "lenia_ca"
 version = "0.1.0"
 authors = ["Birdbrain"]
 edition = "2021"
+description = "A library for simulating the Lenia system of cellular automata."
 license = "MIT"
 
 [dependencies]
