@@ -27,19 +27,17 @@ pub struct StandardLenia {
     inverse_fft_instance: fft::ParPlannedFFTND,
 }
 
-impl StandardLenia {
-    const DEFAULT_KERNEL_SIZE: usize = 28;
-}
-
 impl Lenia for StandardLenia {
-    /// Create and initialize a new instance of "Standard Lenia". This version of Lenia
+    /// Create and initialize a new instance of "Standard Lenia". 
+    /// 
+    /// This version of Lenia
     /// can have only a single channel and a single convolution channel and works
     /// only in 2D. 
     /// It also does not support any weights, as it can be "encoded" within the `dt` parameter. 
     /// 
-    /// By default the kernel, growth function and dt parameter are set such that when 
-    /// simulating, the simulation is capable of producing the ***Orbium unicaudatus*** glider. 
-    /// This does assume that the shape is at last `[28, 28]`, but ideally larger... more like `[100, 100]`.
+    /// By default the kernel, growth function and dt parameter are set such that 
+    /// the simulation is capable of producing the ***Orbium unicaudatus*** glider. 
+    /// This does assume that each dimension in `shape` is at least `28`, but ideally much larger...
     /// 
     /// ### Parameters
     /// 
@@ -52,16 +50,16 @@ impl Lenia for StandardLenia {
     /// * If either of the axis lengths in `shape` are `<28`.
     fn new(shape: &[usize]) -> Self {
         if shape.len() < 2 || shape.len() > 2 { 
-            panic!("StandardLenia2D(new): Expected 2 dimensions for Standard Lenia! Found {}.", shape.len()); 
+            panic!("StandardLenia::new() - Expected 2 dimensions for Standard Lenia! Found {}.", shape.len()); 
         }
         for (i, dim) in shape.iter().enumerate() {
-            if *dim < Self::DEFAULT_KERNEL_SIZE {
-                panic!("StandardLenia::new() - Axis {} is extremely small ({} pixels). Minimum size of each axis for 2D Standard Lenia is {} pixels.", i, *dim, Self::DEFAULT_KERNEL_SIZE);
+            if *dim < 13 {
+                panic!("StandardLenia::new() - Axis {} is extremely small ({} pixels). Make it larger!", i, *dim);
             }
         }
         let kernel = Kernel::from(
             kernels::gaussian_donut_2d(
-                Self::DEFAULT_KERNEL_SIZE, 
+                13, 
                 1.0/6.7
             ), 
             shape
@@ -218,7 +216,24 @@ pub struct ExpandedLenia {
 
 impl Lenia for ExpandedLenia {
     /// Create and initialize a new instance of "ExpandedLenia`. 
+    /// 
+    /// This type of Lenia is much more powerful than `StandardLenia` as it can have n-dimensional fields,
+    /// limitless number of channels as well as kernels and associated growth functions.
+    /// 
+    /// The default kernel is a unit size and the default growth function for the kernel is a "pass" function.
+    /// 
+    /// ### Parameters
+    /// 
+    /// * `shape` - The shape of the channels of the Lenia instance.
+    /// 
+    /// ### Panics
+    /// 
+    /// If any dimension/axis in `shape` is 0. This is not allowed, generally each dimension/axis should be
+    /// relatively large. 
     fn new(shape: &[usize]) -> Self {
+        for (i, dim) in shape.iter().enumerate() {
+            if *dim == 0 { panic!("ExpandedLenia::new() - Dimension/axis {} is 0! This is not allowed!", i); }
+        }
         let kernel = Kernel::from(kernels::pass(shape.len()), shape);
         
         let conv_channel = ConvolutionChannel {

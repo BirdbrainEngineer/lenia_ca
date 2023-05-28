@@ -1,10 +1,67 @@
 //! `Lenia_ca` is a crate that provides core functionality for simulating the Lenia system of cellular automata. The crate was made
 //! as a programming excersize in making a large-ish Rust project. Since this was the first proper Rust project for the author, then
-//! the crate has some weird quirks and inefficient... perhaps even illogical ways of structuring it. 
+//! the crate has some weird quirks and inefficient... perhaps even illogical ways of structuring it. In the future, the trait based
+//! system will probably be replaced by a system using phantom data or some other way of differenciating different Lenia systems from
+//! one-another.
 //! 
 //! For now, the general way to use the crate is to import it like you would any other Rust crate, and then use the `Simulator` struct
 //! essentially exclusively. You may also want to look into the `kernels` module and `growth_functions` module, as they contain a number
 //! of useful generators and functions for Lenia systems. 
+//! 
+//! A rough example of a quick-start code is below... Please note that `display()` function would have to be implemented by the user.
+//! ```
+//! let starting_condition: ndarray::ArrayD<f64>; // fill with your data
+//! let channel_shape: Vec<usize> = vec![100, 100];
+//! let mut simulator = Simulator::<StandardLenia>::new(&channel_shape);
+//! simulator.fill_channel(data: &starting_condition, 0);
+//! while true {
+//!     simulator.iterate();
+//!     display(get_channel_as_ref(0));
+//! }
+//! ```
+//! 
+//! ### Types of Lenia
+//! 
+//! This version of `lenia_ca` crate supports only 2 different types of Lenia systems. `StandardLenia` and `ExpandedLenia` types, and is
+//! not capable of simulating types like "asymptotic" or "particle" Lenia.
+//! 
+//! ### Implementation notes
+//! 
+//! The working principle for `StandardLenia` is the following:
+//! * Perform a convolution operation (implemented as a FFT-based convolution) between the `channel` and `kernel` of the `convolution_channel`
+//! * Each point/pixel's value is then passed into a `growth_function` of the `convolution_channel`.
+//! * The resulting points/pixels are then multiplied by the integration step `dt` and added onto the original values in the `channel`.
+//! * The resulting points/pixels are then clamped to be in range `0..1`. This result is the next time-step of the `channel`, and would
+//! be used as the next iteration's `channel` values. 
+//! 
+//! use `set_kernel()` to change how the kernel looks.
+//! 
+//! use `set_growth_function()` to set a specific growth function for the convolution result.
+//! 
+//! use `set_dt()` to change the integration-step of the simulation. 
+//! 
+//!
+#![cfg_attr(feature = "doc-images",
+cfg_attr(all(),
+doc = ::embed_doc_image::embed_image!("one", "images/glider.png"),
+doc = ::embed_doc_image::embed_image!("two", "images/glider.png")))]
+#![cfg_attr(
+not(feature = "doc-images"),
+doc = "**Doc images not enabled**. Compile with feature `doc-images` and Rust version >= 1.54 \
+           to enable."
+)]
+//!
+//! 
+//! The working principle for `ExpandedLenia` is the following:
+//! * For each `convolution_channel`, perform a convolution operation (implemented as a FFT-based convolution) between a source `channel` 
+//! and the `convolution_channel`'s `kernel`.
+//! * For each `convolution_channel`, pass the convolution results into the `growth_function` of the `convolution_channel`.
+//! * For each `channel`, perform an elementwise multiplication between the corresponding `convolution_channel` results and weights of the
+//! `channel`
+//! * For each `channel`, perform a weighted-sum on the results of the weight-convolution multiplicated results. 
+//! * For each `channel`, multiply the weighted-sum by the integration step `dt` and add it to the original values in the `channel`.
+//! * For each `channel`, clamp the resulting values to be in range `0..1`. This result is the next time-step of the corresponding `channel`, and would
+//! be used as the next iteration's `channel` values.
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
@@ -328,6 +385,8 @@ impl<L: Lenia> Simulator<L> {
         }
     }
 
+    /// Re-initialize a Lenia simulator.
+    /// 
     /// Re-initializes the `Lenia` instance, losing **all** of the previous changes, such as
     /// kernel changes, channel additions or any other parameter changes from the defaults
     /// of the specific `Lenia` instance implementation. 
@@ -428,7 +487,7 @@ impl<L: Lenia> Simulator<L> {
         self.sim.set_source_channel(convolution_channel, source_channel);
     }
 
-    /// Set the kernel of the specified convolution channel. 
+    /// Set and make the kernel of the specified convolution channel. 
     /// 
     /// ### Parameters
     /// 
@@ -501,14 +560,16 @@ impl<L: Lenia> Simulator<L> {
         self.sim.set_dt(dt);
     }
 
-    /// Performs a single iteration of the `Lenia` instance. Channels are updated with
-    /// the resulting new state of the simulation. 
+    /// Performs a single iteration of the `Lenia` instance. 
+    /// 
+    /// Channels are updated with the resulting new state of the simulation. 
     pub fn iterate(&mut self) {
         self.sim.iterate();
     }
 
-    /// Fills a channel with user data. The shapes of the `data` and the channel(s) in the
-    /// `Lenia` instance must be the same. 
+    /// Fills a channel with user data. 
+    /// 
+    /// The shapes of the `data` and the channel(s) in the `Lenia` instance must be the same. 
     /// 
     /// ### Parameters
     /// 
@@ -556,7 +617,9 @@ impl<L: Lenia> Simulator<L> {
         self.sim.get_channel_as_mut_ref(channel)
     }
     
-    /// Retrieve a reference to the specified channel's "deltas". Deltas are the amounts added onto the 
+    /// Retrieve a reference to the specified channel's "deltas". 
+    /// 
+    /// Deltas are the amounts added onto the 
     /// previous iteration's result to get the current iteration's result. 
     /// 
     /// Note that `dt` parameter has not been applied for this field, and no clamp / clip operation has
@@ -576,8 +639,9 @@ impl<L: Lenia> Simulator<L> {
         self.sim.get_deltas_as_ref(channel)
     }
 
-    /// Retrieve a reference to the specified convolution channel's convolution result, 
-    /// also called the "potential distribution". 
+    /// Retrieve a reference to the specified convolution channel's convolution result.
+    /// 
+    /// Convolution result is also called the "potential distribution". 
     /// 
     /// ### Parameters
     /// 
@@ -594,8 +658,9 @@ impl<L: Lenia> Simulator<L> {
         self.sim.get_convoluted_as_ref(convolution_channel).map(|a| { a.re })
     }
 
-    /// Retrieve a reference to the specified convolution channel's convolution results with
-    /// the growth function applied, also called the "activation".
+    /// Retrieve a reference to the specified convolution channel's "activations".
+    /// 
+    /// Activations are the results from passing the convolution results through the growth function.
     /// 
     /// ### Parameters
     /// 
@@ -752,24 +817,17 @@ impl fmt::Debug for ConvolutionChannel {
 /// The `Kernel` struct holds the data of a specific kernel to be used for convolution in
 /// the Lenia simulation. It also implements the necessary conversions to normalize a
 /// kernel and prepare it for convolution using fast-fourier-transform. 
-/// 
-/// ### Parameters
-/// 
-/// * `base` - The original `ndarray::ArrayD<f64>` fom which the `Kernel` got made from.
-/// 
-/// * `normalized` - The scaled down version of the base Kernel such that the sum of 
-/// all the values of the kernel is `1.0`.
-/// 
-/// * `shifted` - Normalized kernel with its center shifted to the "top-right" corner and
-/// the re-sized to match the size of the `Lenia` instance channels. 
-/// This is necessary for fourier-transforming the kernel.
-/// 
-/// * `transformed` - Fourier-transformed kernel.
 pub struct Kernel {
+    /// The original `ndarray::ArrayD<f64>` fom which the `Kernel` got made from
     pub base: ndarray::ArrayD<f64>,
+    /// The scaled down version of the base Kernel such that the sum of all the values of the kernel is `1.0`
     pub normalized: ndarray::ArrayD<f64>,
+    /// Normalized kernel with its center shifted to the "top-right" corner and
+    /// then re-sized to match the size of the `Lenia` instance channels
     pub shifted: ndarray::ArrayD<f64>,
+    /// Fourier-transformed kernel
     pub transformed: ndarray::ArrayD<Complex<f64>>,
+
 }
 
 impl Kernel {

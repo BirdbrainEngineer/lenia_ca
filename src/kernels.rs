@@ -7,6 +7,7 @@ use super::*;
 use ndarray::IxDyn;
 
 /// Generates a kernel base of a gaussian donut in 2d. 
+/// 
 /// The mean (position of the highest value) is placed at `0.5`
 /// in the range `[0.0..1.0]`, where `0.0` is the center of the kernel and `1.0` the outer edge.
 /// 
