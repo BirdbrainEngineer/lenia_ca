@@ -23,7 +23,7 @@ use super::fft::ParPlannedFFTND;
 /// let starting_pattern: ndarray::ArrayD<f64>; // fill with your data
 /// let channel_shape: Vec<usize> = vec![100, 100];
 /// let mut simulator = Simulator::<StandardLenia>::new(&channel_shape);
-/// simulator.fill_channel(data: &starting_pattern, 0);
+/// simulator.fill_channel(&starting_pattern, 0);
 /// while true {
 ///     simulator.iterate();
 ///     display(get_channel_as_ref(0));
@@ -241,11 +241,13 @@ impl Lenia for StandardLenia {
 /// simulator.set_weights(&vec![2.0/3.0, 0.0, 1.0/3.0], 0);
 /// simulator.set_weights(&vec![0.0, -1.0, 0.0], 1);
 /// simulator.set_dt(0.1);
-/// // seed and simulate
-/// simulator.fill_channel(data: &starting_pattern, 0);
+/// // seed channels and simulate
+/// simulator.fill_channel(&starting_pattern0, 0);
+/// simulator.fill_channel(&starting_pattern1, 1);
 /// while true {
 ///     simulator.iterate();
 ///     display(get_channel_as_ref(0));
+///     display(get_channel_as_ref(1));
 /// }
 /// ```
 pub struct ExpandedLenia {

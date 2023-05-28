@@ -13,7 +13,7 @@
 //! let starting_pattern: ndarray::ArrayD<f64>; // fill with your data
 //! let channel_shape: Vec<usize> = vec![100, 100];
 //! let mut simulator = Simulator::<StandardLenia>::new(&channel_shape);
-//! simulator.fill_channel(data: &starting_pattern, 0);
+//! simulator.fill_channel(&starting_pattern, 0);
 //! while true {
 //!     simulator.iterate();
 //!     display(get_channel_as_ref(0));
@@ -40,7 +40,7 @@
 //! 
 //! use `set_dt()` to change the integration-step of the simulation. 
 //! 
-//! Image of the algorithm available on Github
+//! [Image of the algorithm available on Github](https://github.com/BirdbrainEngineer/lenia_ca)
 //! 
 //! The working principle for `ExpandedLenia` is the following:
 //! * For each `convolution_channel`, perform a convolution operation (implemented as a FFT-based convolution) between a source `channel` 
@@ -53,8 +53,21 @@
 //! * For each `channel`, clamp the resulting values to be in range `0..1`. This result is the next time-step of the corresponding `channel`, and would
 //! be used as the next iteration's `channel` values.
 //! 
-//! Image of the algorithm available on Github
+//! [Image of the algorithm available on Github](https://github.com/BirdbrainEngineer/lenia_ca)
 //! 
+//! use `set_channels()` to set the number of channels in the simulation.
+//! 
+//! use `set_convolution_channels()` to set the number of kernels and the associated growth functions.
+//! 
+//! use `set_convolution_channel_source()` to set the channel which will be convoluted by a particular kernel.
+//! 
+//! use `set_kernel()` to change how a `convolution_channel`'s kernel looks like.
+//! 
+//! use `set_growth_function()` to set a specific growth function for the convolution result.
+//! 
+//! use `set_weights()` to set a channel's weights for the corresponding convolution channel results. 
+//! 
+//! use `set_dt()` to change the integration-step of the simulation. 
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
@@ -233,7 +246,9 @@ pub fn load_from_png(file_path: &str) -> ndarray::Array2<f64> {
     output
 }
 
-/// Export a frame as a png or a bunch of png-s if multidimensional. 
+/// Export a frame as a png or a bunch of png-s if multidimensional.
+/// 
+/// The function returns a `JoinHandle` because the exporting takes place on a separate thread.
 /// 
 /// ### Parameters
 /// 
@@ -772,8 +787,11 @@ pub trait Lenia {
 /// The `Channel` struct is a wrapper for holding the data of a single channel in a 
 /// `Lenia` simulation. 
 pub struct Channel {
+    /// The data of the channel
     pub field: ndarray::ArrayD<f64>,
+    /// The weights of the channel
     pub weights: Vec<f64>,
+    /// The reciprocal of the sum of the weights, used for optimized calculations
     pub weight_sum_reciprocal: f64,
 }
 
@@ -781,13 +799,18 @@ pub struct Channel {
 /// A single kernel-growth function pair in a Lenia simulation.
 /// 
 /// The `ConvolutionChannel` struct holds relevant data for the convolution step of the
-/// Lenia simulation. This includes the kernel, the intermittent convolution step, and the 
+/// Lenia simulation. This includes the kernel, the convolution result, and the 
 /// growth function.
 pub struct ConvolutionChannel {
+    /// The channel index which is convoluted with the kernel
     pub input_channel: usize,
+    /// The data of the convolution channel (holds the convolution result)
     pub field: ndarray::ArrayD<f64>,
+    /// The kernel used for convolution
     pub kernel: Kernel,
+    /// The growth function container
     pub growth: fn(f64, &[f64]) -> f64,
+    /// The parameters to use while applying the growth function
     pub growth_params: Vec<f64>,
 }
 

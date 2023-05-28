@@ -10,10 +10,3 @@ rustfft = "6.1.0"
 num-complex = "0.4.2"
 png = "0.17.7"
 rayon = "1.7.0"
-embed-doc-image = "0.1.4"
-
-[features]
-doc-images = []
-
-[package.metadata.docs.rs]
-features = ["doc-images"]
