@@ -1,6 +1,6 @@
 # lenia_ca
 
-This crate has the core functionality for simulating the Lenia system of cellular automata. For more comprehensive documentation, please visit the [docs.rs](https://docs.rs/ndarray/latest/lenia_ca/) page for this crate. 
+This crate has the core functionality for simulating the Lenia system of cellular automata. For more comprehensive documentation, please visit the [docs.rs](https://docs.rs/lenia_ca/0.1.0/lenia_ca/) page for this crate. 
 
 At the time of publishing of this repository and crate, docs.rs does not allow embedding of images (not easily, anyways) in the documentation, and as a result, below are a few graphics viewable on Github showing the working principle of the two types of Lenia that the ``lenia_ca`` crate is able to simulate. 
 
