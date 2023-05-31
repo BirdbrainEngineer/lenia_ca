@@ -16,7 +16,7 @@ use ``set_growth_function()`` to set a specific growth function for the convolut
 
 use ``set_dt()`` to change the integration-step of the simulation. 
 
-![Image representation of the algorithm on GitHub](https://github.com/BirdbrainEngineer/lenia_ca)
+![Image representation of the algorithm on GitHub](images/standardlenia.png)
 
 
 
@@ -29,7 +29,7 @@ use ``set_dt()`` to change the integration-step of the simulation.
 * For each `channel`, multiply the weighted-sum by the integration step `dt` and add it to the original values in the `channel`.
 * For each `channel`, clamp the resulting values to be in range `0..1`. This result is the next time-step of the corresponding `channel`, and would be used as the next iteration's `channel` values.
 
-![Image representation of the algorithm on GitHub](https://github.com/BirdbrainEngineer/lenia_ca)
+![Image representation of the algorithm on GitHub](images/expandedlenia.png)
 
 use `set_channels()` to set the number of channels in the simulation.
 
