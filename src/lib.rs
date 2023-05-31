@@ -647,7 +647,9 @@ impl<L: Lenia> Simulator<L> {
         self.sim.get_deltas_as_ref(channel)
     }
 
-    /// Retrieve a reference to the specified convolution channel's convolution result.
+    /// Exists for backwards-compatibility with `lenia_ca 0.1.0`; use `get_convolved()` instead.
+    /// 
+    /// Retrieves a `convolution_channel`'s convoution result and extracts only the real component. 
     /// 
     /// Convolution result is also called the "potential distribution". 
     /// 
@@ -664,6 +666,46 @@ impl<L: Lenia> Simulator<L> {
             panic!("Simulator::get_convoluted() - Specified convolution channel (index {}) does not exist. Current number of convolution channels: {}.", convolution_channel, self.sim.conv_channels());
         }
         self.sim.get_convoluted_as_ref(convolution_channel).map(|a| { a.re })
+    }
+
+    /// Retrieves a `convolution_channel`'s convoution result and extracts only the real component. 
+    /// 
+    /// Convolution result is also called the "potential distribution". 
+    /// 
+    /// ### Parameters
+    /// 
+    /// * `convolution_channel` - Index of the convolution channel from which to
+    /// produce the `f64` `ndarray`. 
+    /// 
+    /// ### Panics
+    /// 
+    /// If the specified `channel` does not exist.
+    pub fn get_convolved(&self, convolution_channel: usize) -> ndarray::ArrayD<f64> {
+        if convolution_channel >= self.sim.channels() {
+            panic!("Simulator::get_convolved() - Specified convolution channel (index {}) does not exist. Current number of convolution channels: {}.", convolution_channel, self.sim.conv_channels());
+        }
+        self.sim.get_convoluted_as_ref(convolution_channel).map(|a| { a.re })
+    }
+
+    /// Retrieve a reference to the specified convolution channel's convolution result.
+    /// 
+    /// Convolution result is also called the "potential distribution". 
+    /// 
+    /// Note that the referenced array holds `Complex<f64>` type values. 
+    /// 
+    /// ### Parameters
+    /// 
+    /// * `convolution_channel` - Index of the convolution channel from which to
+    /// produce the `f64` `ndarray`. 
+    /// 
+    /// ### Panics
+    /// 
+    /// If the specified `channel` does not exist.
+    pub fn get_convolved_as_ref(&self, convolution_channel: usize) -> &ndarray::ArrayD<Complex<f64>> {
+        if convolution_channel >= self.sim.channels() {
+            panic!("Simulator::get_convolved_as_ref() - Specified convolution channel (index {}) does not exist. Current number of convolution channels: {}.", convolution_channel, self.sim.conv_channels());
+        }
+        self.sim.get_convoluted_as_ref(convolution_channel)
     }
 
     /// Retrieve a reference to the specified convolution channel's "activations".

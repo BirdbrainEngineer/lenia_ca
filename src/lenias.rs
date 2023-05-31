@@ -19,6 +19,8 @@ use super::fft::ParPlannedFFTND;
 /// the **growth function**, and the **kernel** given that the kernel is 2-dimensional. 
 /// 
 /// ### Example of initializing a `StandardLenia`.
+/// Initializes a Lenia instance capable of making a soliton.
+/// 
 /// ```
 /// let starting_pattern: ndarray::ArrayD<f64>; // fill with your data
 /// let channel_shape: Vec<usize> = vec![100, 100];
@@ -220,6 +222,9 @@ impl Lenia for StandardLenia {
 /// integration step!**
 /// 
 /// ### Example of initializing an `ExpandedLenia`.
+/// Initializes with a ruleset with 2 different solitons, where the channel_0 solitons are dependent on and tied
+/// to the channel_1 solitons.
+/// 
 /// ```
 /// // initialize
 /// let starting_pattern0: ndarray::ArrayD<f64>; // fill with your data
@@ -233,13 +238,13 @@ impl Lenia for StandardLenia {
 /// simulator.set_convolution_channel_source(1, 1);
 /// simulator.set_convolution_channel_source(2, 1);
 /// simulator.set_kernel(kernels::gaussian_donut_2d(14, 0.15), 0);
-/// simulator.set_kernel(kernels::polynomial(25, 2, &vec![4.0, 1.0, 0.333]), 1);
-/// simulator.set_kernel(kernels::polynomial(21, 2, &vec![4.0, 0.0, 1.0]), 2);
-/// simulator.set_growth_function(growth_functions::standard_lenia, vec![0.15, 0.015], 0);
-/// simulator.set_growth_function(growth_functions::polynomial, vec![0.25, 0.03], 1);
-/// simulator.set_growth_function(growth_functions::polynomial, vec![0.07, 0.026], 2);
-/// simulator.set_weights(&vec![2.0/3.0, 0.0, 1.0/3.0], 0);
-/// simulator.set_weights(&vec![0.0, -1.0, 0.0], 1);
+/// simulator.set_kernel(kernels::polynomial_nd(25, 2, &vec![4.0, 1.0, 0.333]), 1);
+/// simulator.set_kernel(kernels::polynomial_nd(21, 2, &vec![4.0, 0.0, 1.0]), 2);
+/// simulator.set_growth_function(growth_functions::standard_lenia, vec![0.15, 0.02], 0);
+/// simulator.set_growth_function(growth_functions::polynomial, vec![0.25, 0.03, 4.0], 1);
+/// simulator.set_growth_function(growth_functions::polynomial, vec![0.07, 0.026, 4.0], 2);
+/// simulator.set_weights(0, &vec![2.0/3.0, 0.0, 1.0/3.0]);
+/// simulator.set_weights(1, &vec![0.0, 1.0, 0.0]);
 /// simulator.set_dt(0.1);
 /// // seed channels and simulate
 /// simulator.fill_channel(&starting_pattern0, 0);

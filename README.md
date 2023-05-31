@@ -1,6 +1,6 @@
 # lenia_ca
 
-This crate has the core functionality for simulating the Lenia system of cellular automata. For more comprehensive documentation, please visit the [docs.rs](https://docs.rs/lenia_ca/0.1.0/lenia_ca/) page for this crate. 
+This crate has the core functionality for simulating the Lenia system of cellular automata. For more comprehensive documentation, please visit the [docs.rs](https://docs.rs/lenia_ca/0.1.1/lenia_ca/) page for this crate. 
 
 At the time of publishing of this repository and crate, docs.rs does not allow embedding of images (not easily, anyways) in the documentation, and as a result, below are a few graphics viewable on Github showing the working principle of the two types of Lenia that the ``lenia_ca`` crate is able to simulate. 
 
@@ -16,7 +16,7 @@ use ``set_growth_function()`` to set a specific growth function for the convolut
 
 use ``set_dt()`` to change the integration-step of the simulation. 
 
-![Image representation of the algorithm](images/standardlenia.png)
+![Image representation of the algorithm on GitHub](https://github.com/BirdbrainEngineer/lenia_ca)
 
 
 
@@ -29,7 +29,7 @@ use ``set_dt()`` to change the integration-step of the simulation.
 * For each `channel`, multiply the weighted-sum by the integration step `dt` and add it to the original values in the `channel`.
 * For each `channel`, clamp the resulting values to be in range `0..1`. This result is the next time-step of the corresponding `channel`, and would be used as the next iteration's `channel` values.
 
-![Image representation of the algorithm](images/expandedlenia.png)
+![Image representation of the algorithm on GitHub](https://github.com/BirdbrainEngineer/lenia_ca)
 
 use `set_channels()` to set the number of channels in the simulation.
 

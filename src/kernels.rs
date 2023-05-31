@@ -308,7 +308,7 @@ pub fn smoothlife(radius: usize, dimensions: usize, width_ratio: f64) -> ndarray
 
 /// Generates a kernel base of a single pixel with n-dimensions.
 pub fn pass(dimensions: usize) -> ndarray::ArrayD<f64> {
-    let mut unit_shape: Vec<usize> = vec![1; dimensions];
+    let unit_shape: Vec<usize> = vec![1; dimensions];
     ndarray::ArrayD::<f64>::from_shape_fn(unit_shape, |a| { 1.0 })
 }
 
